@@ -16,6 +16,10 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase); // the.json method parses incoming requests with JSON payloads
 });
 
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n"); //Incorporating HTML elements to stylize the page
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
