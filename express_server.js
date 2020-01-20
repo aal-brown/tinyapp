@@ -12,6 +12,10 @@ app.get("/", (req, res) => {
   res.send("Hello!"); // ends the request-response loop and gives a message.
 });
 
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase); // the.json method parses incoming requests with JSON payloads
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
