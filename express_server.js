@@ -44,6 +44,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
+//The render command is basically saying, that when we make a get request for the shortURL, we will respond by sending a rendered urls_show file.
 
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
@@ -61,6 +62,24 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   //console.log(req.body);  // Log the POST request body to the console
   res.redirect(`/urls`);
+});
+
+/* app.get("/urls/:shortURL/edit", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  //console.log(req.body);  // Log the POST request body to the console
+  res.redirect(`/urls/${shortURL}`);
+}); */
+
+app.post("/urls/:shortURL", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  res.render("urls_show", templateVars);
+});
+
+app.post("/urls/:shortURL/edit", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: req.body.longURL};
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  console.log(templateVars)
+  res.render("urls_show", templateVars);
 });
 
 app.listen(PORT, () => {
