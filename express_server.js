@@ -64,17 +64,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect(`/urls`);
 });
 
-/* app.get("/urls/:shortURL/edit", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  //console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/${shortURL}`);
-}); */
-
+//This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
+//This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: req.body.longURL};
   urlDatabase[req.params.shortURL] = req.body.longURL;
