@@ -1,7 +1,9 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
 
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 const PORT = 8080;
 
@@ -31,17 +33,20 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = { username: req.cookies["username"],
+    urls: urlDatabase };
   res.render("urls_index", templateVars); //assumed .ejs extension, thus EJS knows to look in the "views" folder by default.
 });
 
 //This needs to be above the :shortURL because otherwise any calls to urls new will be handled by the :shortURL.
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { username: req.cookies["username"],
+    shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 //The render command is basically saying, that when we make a get request for the shortURL, we will respond by sending a rendered urls_show file.
@@ -66,17 +71,34 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { username: req.cookies["username"],
+    shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
 //This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: req.body.longURL};
+  let templateVars = { username: req.cookies["username"],
+    shortURL: req.params.shortURL, longURL: req.body.longURL};
   urlDatabase[req.params.shortURL] = req.body.longURL;
   console.log(templateVars)
   res.render("urls_show", templateVars);
 });
+
+app.post("/login", (req, res) => {
+  res.cookie("username",req.body.username);
+  let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
