@@ -12,6 +12,29 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+
+  addUser: function (reqBody) {
+    let newID = generateRandomString();
+    users[newID] = {
+      id: newID,
+      email: reqBody.body.email,
+      password: reqBody.body.password,
+    };
+  }
+};
+
+class Users {
+  constructor(userID, email, password) {
+    this.id = userID;
+    this.email = email;
+    this.password = password;
+  }
+}
+
+
+
+
 //toString(36) means to use any numbers from 0 to 9 and any letters from a to z. So 26+10 = 36
 function generateRandomString() {
   return Math.random().toString(36).substr(2,6)
@@ -42,6 +65,12 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = { username: req.cookies["username"] };
   res.render("urls_new", templateVars);
+});
+
+//Goes to the registration page, has to be above the :shortURL because otherwise "registration" will be treated as the new url on the urls_show page.
+app.get("/register", (req, res) => {
+  let templateVars = { username: req.cookies["username"] };
+  res.render("urls_registration", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -87,17 +116,25 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 app.post("/login", (req, res) => {
   res.cookie("username",req.body.username);
-  let templateVars = {
-    username: req.cookies["username"],
-    urls: urlDatabase
-  };
+  // let templateVars = {
+  //   username: req.cookies["username"],
+  //   urls: urlDatabase
+  // };
   res.redirect("/urls");
 });
 
+//This handles the logout request, it clears the cookie of the username and redirects back to the main page.
 app.post("/logout", (req, res) => {
   res.clearCookie("username", req.body.username);
   res.redirect("/urls");
 });
+
+app.post("/register", (req, res) => {
+  users.addUser(req.body)
+  console.log(users);
+  res.redirect("/urls");
+});
+
 
 
 app.listen(PORT, () => {
