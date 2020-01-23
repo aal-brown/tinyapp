@@ -1,16 +1,20 @@
 const express = require("express");
 const app = express();
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs");
-app.use(cookieParser());
+
+app.use(cookieSession({
+  name: "session",
+  keys: ["adawawz121"],
+
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 const PORT = 8080;
 
-const urlDatabase = {
-  
-};
+const urlDatabase = {};
 
 const users = {
 
@@ -76,7 +80,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {};
   if (userID === undefined) {
     templateVars = {
@@ -90,12 +94,12 @@ app.get("/urls", (req, res) => {
       urls: urlsForID
     };
   }
-  res.render("urls_index", templateVars); //assumed .ejs extension, thus EJS knows to look in the "views" folder by default.
+  res.render("urls_index", templateVars);
 });
 
 //This needs to be above the :shortURL because otherwise any calls to urls new will be handled by the :shortURL.
 app.get("/urls/new", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     userID : users[userID]
   };
@@ -108,7 +112,7 @@ app.get("/urls/new", (req, res) => {
 
 //Goes to the registration page, has to be above the :shortURL because otherwise "registration" will be treated as the new url on the urls_show page.
 app.get("/register", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     userID : users[userID]
   };
@@ -116,7 +120,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
@@ -124,10 +128,9 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-//The render command is basically saying, that when we make a get request for the shortURL, we will respond by sending a rendered urls_show file.
 
 app.post("/urls", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (userID === undefined) {
     res.send("You must be logged-in to use that feature.");
   } else {
@@ -143,7 +146,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (checkSafe(userID, req.params.shortURL)) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
@@ -154,7 +157,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
@@ -165,7 +168,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 //This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (checkSafe(userID, req.params.shortURL)) {
     let templateVars = {
       userID : users[userID],
@@ -188,30 +191,30 @@ app.post("/login", (req, res) => {
   } else if (!bcrypt.compareSync(req.body.password, users[userID].password)) {
     res.status(403).redirect("/login");
   } else {
-    res.cookie("user_id", userID);
+    req.session.user_id = userID;
     res.redirect("/urls");
   }
 });
 
 //This handles the logout request, it clears the cookie of the username and redirects back to the main page.
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id", req.cookies["user_id"]);
+  req.session = null;
   res.redirect("/urls");
 });
 
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
-    res.send("400 Invalid entry.");
+    res.status(400).send("Invalid entry.");
   } else if (users.getIDfromEmail(req.body.email)) {
-    res.send("400 Email already in use.");
+    res.status(400).send("Email already in use.");
   } else {
-    res.cookie("user_id",users.addUser(req.body));
+    req.session.user_id = users.addUser(req.body);
     res.redirect("/urls");
   }
 });
 
 app.get("/login", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     userID : users[userID],
   };
