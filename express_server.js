@@ -8,8 +8,7 @@ app.use(cookieParser());
 const PORT = 8080;
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  
 };
 
 const users = {
@@ -72,7 +71,11 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     userID : users[userID]
   };
-  res.render("urls_new", templateVars);
+  if (userID === undefined) {
+    res.redirect("/login");
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 //Goes to the registration page, has to be above the :shortURL because otherwise "registration" will be treated as the new url on the urls_show page.
@@ -86,24 +89,29 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let userID = req.cookies["user_id"];
+  //console.log(req.body)
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
     longURL:req.body.longURL
   };
-
   res.render("urls_show", templateVars);
 });
 //The render command is basically saying, that when we make a get request for the shortURL, we will respond by sending a rendered urls_show file.
 
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body["longURL"];
-  res.redirect(`/urls/${shortURL}`);
+  let userID = req.cookies["user_id"]
+  if (userID === undefined) {
+    res.send("You must be logged-in to use that feature.")
+  } else {
+    let shortURL = generateRandomString();
+    urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID};
+    res.redirect(`/urls/${shortURL}`);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -114,6 +122,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
+  console.log(req.body);
   let userID = req.cookies["user_id"];
   let templateVars = {
     userID : users[userID],
@@ -131,7 +140,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     shortURL: req.params.shortURL,
     longURL:req.body.longURL
   };
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.render("urls_show", templateVars);
 });
 
