@@ -34,6 +34,15 @@ const users = {
   }
 };
 
+const urlsForUser = function(id) {
+  let userURLs = {};
+  for (let urls in urlDatabase) {
+    if (urlDatabase.urls.userID === id) {
+      userURLs[urls] = urlDatabase.urls.longURL;
+    }
+  }
+  return userURLs;
+};
 
 
 //toString(36) means to use any numbers from 0 to 9 and any letters from a to z. So 26+10 = 36
@@ -57,11 +66,19 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let userID = req.cookies["user_id"]
-  let templateVars = {
-    userID : users[userID],
-    urls: urlDatabase
-  };
+  let userID = req.cookies["user_id"];
+  let templateVars = {};
+  if (userID === undefined) {
+    templateVars = {
+      userID : undefined,
+      urls: ""
+    };
+  } else {
+    templateVars = {
+      userID : users[userID],
+      urls: urlDatabase
+    };
+  }
   res.render("urls_index", templateVars); //assumed .ejs extension, thus EJS knows to look in the "views" folder by default.
 });
 
