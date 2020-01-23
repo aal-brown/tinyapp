@@ -12,7 +12,9 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
+
 const PORT = 8080;
+
 
 const urlDatabase = {};
 
@@ -70,12 +72,13 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get("/", (req, res) => {
-  res.send("Hello!"); // ends the request-response loop and gives a message.
+  res.redirect("/urls"); // ends the request-response loop and gives a message.
 });
 
-app.get("/urls.json", (req, res) => {
+//The following was part of the code we were asked to write, however it would give anyone who access the link access to the urlDatabase, so I've removed it from the code. If this was a real page, this would be very poor programming.
+/* app.get("/urls.json", (req, res) => {
   res.json(urlDatabase); // the.json method parses incoming requests with JSON payloads
-});
+}); */
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n"); //Incorporating HTML elements to stylize the page
@@ -187,6 +190,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   }
 });
 
+//Handles the login page, will respond with various errors if
 app.post("/login", (req, res) => {
   let userID = users.getIDfromEmail(req.body.email);
   if (!req.body.email || !req.body.password) {
