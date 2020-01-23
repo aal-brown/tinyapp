@@ -93,7 +93,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
-    longURL:req.body.longURL
+    longURL: urlDatabase[req.params.shortURL].longURL
   };
   res.render("urls_show", templateVars);
 });
@@ -127,7 +127,7 @@ app.post("/urls/:shortURL", (req, res) => {
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
-    longURL:req.body.longURL
+    longURL: urlDatabase[req.params.shortURL].longURL
   };
   res.render("urls_show", templateVars);
 });
