@@ -38,6 +38,7 @@ const users = {
   }
 };
 
+//Returns the urls for a specific user, by searching the url object for matching id's. Returns an empty object if no matches found.
 const urlsForUser = function(id) {
   let userURLs = {};
   for (let urls in urlDatabase) {
@@ -48,6 +49,7 @@ const urlsForUser = function(id) {
   return userURLs;
 };
 
+//Checks to see whether a given shorturl is associated with the id of the user making the request.
 const checkSafe = function(id, shortURL) {
   let urlsForID = urlsForUser(id);
   for (let shorturls in urlsForID) {
@@ -79,6 +81,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n"); //Incorporating HTML elements to stylize the page
 });
 
+//If a get request to the /urls page is made, and the user id is undefined, it doesn't display any data. Otherwise it will display whatever is associated with that user id.
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   let templateVars = {};
@@ -140,14 +143,16 @@ app.post("/urls", (req, res) => {
   }
 });
 
+//This handles the actual use of the shortened links
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
+//Handles the delete button from the "main" page.
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = req.session.user_id;
-  if (checkSafe(userID, req.params.shortURL)) {
+  if (checkSafe(userID, req.params.shortURL)) { //Checks access
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {
