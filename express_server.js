@@ -5,7 +5,7 @@ const app = express();
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
-const { getIDfromEmail, urlsForUser, checkSafe, generateRandomString } = require("./helpers.js");
+const { getIDfromEmail, urlsForUser, checkSafe, generateRandomString, getDate } = require("./helpers.js");
 app.set("view engine", "ejs");
 
 app.use(cookieSession({
@@ -146,8 +146,9 @@ app.post("/urls", (req, res) => {
     res.send("You must be logged-in to use that feature.");
   } else {
     let shortURL = generateRandomString();
-    urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID};
+    urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID, date: getDate()};
     res.redirect(`/urls/${shortURL}`);
+    console.log(urlDatabase);
   }
 });
 
@@ -192,11 +193,12 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     let templateVars = {
       userID : users[userID],
       shortURL: req.params.shortURL,
-      longURL:req.body.longURL
+      longURL: req.body.longURL
     };
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    urlDatabase[req.params.shortURL].date = getDate();
     res.render("urls_show", templateVars);
-
+    console.log(urlDatabase);
   } else {
     res.send("Permission denied.");
   }

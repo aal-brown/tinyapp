@@ -12,7 +12,10 @@ const urlsForUser = function(id, urldatabase) {
   let userURLs = {};
   for (let urls in urldatabase) {
     if (urldatabase[urls].userID === id) {
-      userURLs[urls] = urldatabase[urls].longURL;
+      userURLs[urls] = {
+        longURL: urldatabase[urls].longURL,
+        date: urldatabase[urls].date
+      };
     }
   }
   return userURLs;
@@ -35,9 +38,19 @@ const generateRandomString = function() {
   return Math.random().toString(36).substr(2,6);
 };
 
+
+let getDate = function() {
+  let currDate = Date();
+  currDate = currDate.toString().split(" ");
+  currDate.splice(currDate.length - 2,1);
+  return currDate.join(" ");
+};
+
+
 module.exports = {
   getIDfromEmail,
   urlsForUser,
   checkSafe,
-  generateRandomString
+  generateRandomString,
+  getDate
 };
