@@ -51,7 +51,7 @@ const checkSafe = function(id, shortURL) {
     }
   }
   return false;
-}
+};
 
 
 //toString(36) means to use any numbers from 0 to 9 and any letters from a to z. So 26+10 = 36
@@ -127,9 +127,9 @@ app.get("/urls/:shortURL", (req, res) => {
 //The render command is basically saying, that when we make a get request for the shortURL, we will respond by sending a rendered urls_show file.
 
 app.post("/urls", (req, res) => {
-  let userID = req.cookies["user_id"]
+  let userID = req.cookies["user_id"];
   if (userID === undefined) {
-    res.send("You must be logged-in to use that feature.")
+    res.send("You must be logged-in to use that feature.");
   } else {
     let shortURL = generateRandomString();
     urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID};
