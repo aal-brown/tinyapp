@@ -27,7 +27,6 @@ const users = {
   getIDfromEmail: function(email) {
     for (let ids in users) {
       if (users[ids].email === email) {
-        console.log(users[ids].id);
         return users[ids].id;
       }
     }
@@ -36,13 +35,24 @@ const users = {
 
 const urlsForUser = function(id) {
   let userURLs = {};
+  console.log("inside urlsForUser function");
   for (let urls in urlDatabase) {
-    if (urlDatabase.urls.userID === id) {
-      userURLs[urls] = urlDatabase.urls.longURL;
+    if (urlDatabase[urls].userID === id) {
+      userURLs[urls] = urlDatabase[urls].longURL;
     }
   }
   return userURLs;
 };
+
+const checkSafe = function(id, shortURL) {
+  let urlsForID = urlsForUser(id);
+  for (let shorturls in urlsForID) {
+    if (shorturls === shortURL) {
+      return true;
+    }
+  }
+  return false;
+}
 
 
 //toString(36) means to use any numbers from 0 to 9 and any letters from a to z. So 26+10 = 36
@@ -74,9 +84,10 @@ app.get("/urls", (req, res) => {
       urls: ""
     };
   } else {
+    let urlsForID = urlsForUser(userID);
     templateVars = {
       userID : users[userID],
-      urls: urlDatabase
+      urls: urlsForID
     };
   }
   res.render("urls_index", templateVars); //assumed .ejs extension, thus EJS knows to look in the "views" folder by default.
@@ -133,13 +144,17 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect(`/urls`);
+  let userID = req.cookies["user_id"];
+  if (checkSafe(userID, req.params.shortURL)) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect(`/urls`);
+  } else {
+    res.send("Permission denied.");
+  }
 });
 
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
-  console.log(req.body);
   let userID = req.cookies["user_id"];
   let templateVars = {
     userID : users[userID],
