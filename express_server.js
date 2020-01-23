@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
@@ -18,7 +19,7 @@ const users = {
     users[newID] = {
       id: newID,
       email: reqBody.email,
-      password: reqBody.password,
+      password: bcrypt.hashSync(reqBody.password, 10)
     };
     return newID;
   },
@@ -116,7 +117,6 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let userID = req.cookies["user_id"];
-  //console.log(req.body)
   let templateVars = {
     userID : users[userID],
     shortURL: req.params.shortURL,
@@ -146,7 +146,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = req.cookies["user_id"];
   if (checkSafe(userID, req.params.shortURL)) {
     delete urlDatabase[req.params.shortURL];
-    res.redirect(`/urls`);
+    res.redirect("/urls");
   } else {
     res.send("Permission denied.");
   }
@@ -182,11 +182,11 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 app.post("/login", (req, res) => {
   let userID = users.getIDfromEmail(req.body.email);
   if (!req.body.email || !req.body.password) {
-    res.send("400 Invalid entry.");
+    res.status(400).redirect("/login");
   } else if (userID === undefined) {
-    res.send("403 Account doesn't exist.");
-  } else if (users[userID].password !== req.body.password) {
-    res.send("403 Incorrect email address or password.");
+    res.status(403).redirect("/login");
+  } else if (!bcrypt.compareSync(req.body.password, users[userID].password)) {
+    res.status(403).redirect("/login");
   } else {
     res.cookie("user_id", userID);
     res.redirect("/urls");
