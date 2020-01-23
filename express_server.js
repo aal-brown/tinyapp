@@ -102,19 +102,30 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
-  let templateVars = {
-    userID : users[userID],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
-  };
-  res.render("urls_show", templateVars);
+  if (userID === undefined) {
+    res.status(403).send("Permission denied.");
+  } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
+    let templateVars = {
+      userID : users[userID],
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL
+    };
+    res.render("urls_show", templateVars);
+
+  } else {
+    res.status(403).send("Permission denied.");
+  }
 });
 
 
 //This handles the actual use of the shortened links
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    res.status(404).send("Link doesn't exist.");
+  }
 });
 
 
@@ -148,7 +159,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {
-    res.send("Permission denied.");
+    res.status(403).send("Permission denied.");
   }
 });
 
@@ -156,19 +167,28 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
-  let templateVars = {
-    userID : users[userID],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
-  };
-  res.render("urls_show", templateVars);
+  if (userID === undefined) {
+    res.status(403).send("Permission denied.");
+  } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
+    let templateVars = {
+      userID : users[userID],
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(403).send("Permission denied.");
+  }
 });
 
 
 //This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
   let userID = req.session.user_id;
-  if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
+  if (userID === undefined) {
+    res.status(403).send("Permission denied.");
+
+  } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
     let templateVars = {
       userID : users[userID],
       shortURL: req.params.shortURL,
@@ -176,6 +196,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     };
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.render("urls_show", templateVars);
+
   } else {
     res.send("Permission denied.");
   }
