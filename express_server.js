@@ -1,3 +1,4 @@
+//====================================================================INCLUDES & CONSTANTS===================================================================//
 const express = require("express");
 const app = express();
 const cookieSession = require("cookie-session");
@@ -15,7 +16,7 @@ app.use(cookieSession({
 
 const PORT = 8080;
 
-
+//====================================================================GLOBAL FUNCTIONS & OBJECTS===================================================================//
 const urlDatabase = {};
 
 const users = {
@@ -71,6 +72,8 @@ const generateRandomString = function() {
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+
+//====================================================================GET REQUESTS===================================================================//
 app.get("/", (req, res) => {
   res.redirect("/urls"); // ends the request-response loop and gives a message.
 });
@@ -135,6 +138,23 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//This handles the actual use of the shortened links
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  res.redirect(longURL);
+});
+
+app.get("/login", (req, res) => {
+  let userID = req.session.user_id;
+  let templateVars = {
+    userID : users[userID],
+  };
+  res.render("login", templateVars);
+});
+
+//====================================================================POST REQUESTS===================================================================//
+
+
 app.post("/urls", (req, res) => {
   let userID = req.session.user_id;
   if (userID === undefined) {
@@ -146,11 +166,6 @@ app.post("/urls", (req, res) => {
   }
 });
 
-//This handles the actual use of the shortened links
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
-});
 
 //Handles the delete button from the "main" page.
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -163,6 +178,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
+
 //This code is used for edit requests from the main urls page.
 app.post("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
@@ -173,6 +189,7 @@ app.post("/urls/:shortURL", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+
 
 //This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
@@ -190,6 +207,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   }
 });
 
+
 //Handles the login page, will respond with various errors if
 app.post("/login", (req, res) => {
   let userID = users.getIDfromEmail(req.body.email);
@@ -205,12 +223,14 @@ app.post("/login", (req, res) => {
   }
 });
 
+
 //This handles the logout request, it clears the cookie of the username and redirects back to the main page.
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
+//This handles registration, it checks the supplied inputs and sends the appropriate response
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.status(400).send("Invalid entry.");
@@ -222,15 +242,8 @@ app.post("/register", (req, res) => {
   }
 });
 
-app.get("/login", (req, res) => {
-  let userID = req.session.user_id;
-  let templateVars = {
-    userID : users[userID],
-  };
-  res.render("login", templateVars);
-});
-
+//====================================================================START THE SERVER===================================================================//
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
