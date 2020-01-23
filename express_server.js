@@ -35,7 +35,6 @@ const users = {
 
 const urlsForUser = function(id) {
   let userURLs = {};
-  console.log("inside urlsForUser function");
   for (let urls in urlDatabase) {
     if (urlDatabase[urls].userID === id) {
       userURLs[urls] = urlDatabase[urls].longURL;
@@ -167,13 +166,17 @@ app.post("/urls/:shortURL", (req, res) => {
 //This is used for the edit requests at the urls_show page
 app.post("/urls/:shortURL/edit", (req, res) => {
   let userID = req.cookies["user_id"];
-  let templateVars = {
-    userID : users[userID],
-    shortURL: req.params.shortURL,
-    longURL:req.body.longURL
-  };
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  res.render("urls_show", templateVars);
+  if (checkSafe(userID, req.params.shortURL)) {
+    let templateVars = {
+      userID : users[userID],
+      shortURL: req.params.shortURL,
+      longURL:req.body.longURL
+    };
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.render("urls_show", templateVars);
+  } else {
+    res.send("Permission denied.");
+  }
 });
 
 app.post("/login", (req, res) => {
