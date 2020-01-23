@@ -10,8 +10,8 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <% if (userID) { %>
-        <h6 style="margin-left: auto; margin-right: 0; margin-top: auto">Logged In As: <%= userID.email %></h6>
-        <form method="POST" action="/logout" style="margin-left: auto; margin-right: 1 em">
+        <h6 style="margin-left: auto; margin-right: 1em; margin-top: auto; margin-bottom: 11px"><b>Logged In As: </b><i><%= userID.email %></i></h6>
+        <form method="POST" action="/logout" style="margin-left: 4px; margin-right: 1 em">
           <button type="submit" class="btn btn-outline-default" style="color:#007bff"><strong>Log Out</strong></button>
         </form>
       <% } else { %>
