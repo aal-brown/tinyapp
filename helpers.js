@@ -14,7 +14,8 @@ const urlsForUser = function(id, urldatabase) {
     if (urldatabase[urls].userID === id) {
       userURLs[urls] = {
         longURL: urldatabase[urls].longURL,
-        date: urldatabase[urls].date
+        date: urldatabase[urls].date,
+        uses: urldatabase[urls].uses
       };
     }
   }

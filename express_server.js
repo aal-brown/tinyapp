@@ -122,6 +122,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
+    urlDatabase[req.params.shortURL].uses = urlDatabase[req.params.shortURL].uses + 1;
     res.redirect(longURL);
   } else {
     res.status(404).send("Link doesn't exist.");
@@ -146,7 +147,7 @@ app.post("/urls", (req, res) => {
     res.send("You must be logged-in to use that feature.");
   } else {
     let shortURL = generateRandomString();
-    urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID, date: getDate()};
+    urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID, date: getDate(), uses: 0};
     res.redirect(`/urls/${shortURL}`);
     console.log(urlDatabase);
   }
