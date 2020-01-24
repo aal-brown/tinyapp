@@ -5,7 +5,9 @@ const app = express();
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
 const { getIDfromEmail, urlsForUser, checkSafe, generateRandomString, getDate } = require("./helpers.js");
+
 app.set("view engine", "ejs");
 
 app.use(cookieSession({
@@ -17,6 +19,9 @@ app.use(cookieSession({
 
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(methodOverride('_method'));
+
+//Defining which port to use
 const PORT = 8080;
 
 
@@ -40,8 +45,9 @@ const users = {
 
 //====================================================================GET REQUESTS===================================================================//
 
+//Redirect to main page if someone tries accessing root.
 app.get("/", (req, res) => {
-  res.redirect("/urls"); // ends the request-response loop and gives a message.
+  res.redirect("/urls");
 });
 
 
@@ -50,9 +56,9 @@ app.get("/", (req, res) => {
   res.json(urlDatabase); // the.json method parses incoming requests with JSON payloads
 }); */
 
-
+//Incorporating HTML elements to stylize the page
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n"); //Incorporating HTML elements to stylize the page
+  res.send("<html><body>Hello <b>World</b></body></html>\n"); 
 });
 
 
@@ -60,11 +66,13 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   let templateVars = {};
+
   if (userID === undefined) {
     templateVars = {
       userID : undefined,
       urls: ""
     };
+
   } else {
     let urlsForID = urlsForUser(userID, urlDatabase);
     templateVars = {
@@ -82,8 +90,10 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     userID : users[userID]
   };
+
   if (userID === undefined) {
     res.redirect("/login");
+
   } else {
     res.render("urls_new", templateVars);
   }
@@ -99,11 +109,13 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-
+//This code is used to handle get requests to the short URL page, such as after submitting a new url from the creat url page, or clicking on edit from the index page.
 app.get("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
+
   if (userID === undefined) {
     res.status(403).send("Permission denied.");
+
   } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
     let templateVars = {
       userID : users[userID],
@@ -120,10 +132,12 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //This handles the actual use of the shortened links
 app.get("/u/:shortURL", (req, res) => {
+
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     urlDatabase[req.params.shortURL].uses = urlDatabase[req.params.shortURL].uses + 1;
     res.redirect(longURL);
+
   } else {
     res.status(404).send("Link doesn't exist.");
   }
@@ -139,23 +153,24 @@ app.get("/login", (req, res) => {
 });
 
 
-//====================================================================POST REQUESTS===================================================================//
+//====================================================================POST, PUT, DELETE REQUESTS===================================================================//
 
 app.post("/urls", (req, res) => {
   let userID = req.session.user_id;
+
   if (userID === undefined) {
     res.send("You must be logged-in to use that feature.");
+
   } else {
     let shortURL = generateRandomString();
     urlDatabase[shortURL] = {"longURL": req.body["longURL"], "userID": userID, date: getDate(), uses: 0};
     res.redirect(`/urls/${shortURL}`);
-    console.log(urlDatabase);
   }
 });
 
 
 //Handles the delete button from the "main" page.
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
   if (checkSafe(userID, req.params.shortURL, urlDatabase)) { //Checks access
     delete urlDatabase[req.params.shortURL];
@@ -166,27 +181,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 
-//This code is used for edit requests from the main urls page.
-app.post("/urls/:shortURL", (req, res) => {
-  let userID = req.session.user_id;
-  if (userID === undefined) {
-    res.status(403).send("Permission denied.");
-  } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
-    let templateVars = {
-      userID : users[userID],
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL
-    };
-    res.render("urls_show", templateVars);
-  } else {
-    res.status(403).send("Permission denied.");
-  }
-});
-
-
 //This is used for the edit requests at the urls_show page
-app.post("/urls/:shortURL/edit", (req, res) => {
+app.put("/urls/:shortURL", (req, res) => {
   let userID = req.session.user_id;
+
   if (userID === undefined) {
     res.status(403).send("Permission denied.");
 
@@ -199,7 +197,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     urlDatabase[req.params.shortURL].date = getDate();
     res.render("urls_show", templateVars);
-    console.log(urlDatabase);
+
   } else {
     res.send("Permission denied.");
   }
@@ -209,12 +207,16 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 //Handles the login page, will respond with various errors if
 app.post("/login", (req, res) => {
   let userID = getIDfromEmail(req.body.email, users);
+
   if (!req.body.email || !req.body.password) {
     res.status(400).redirect("/login");
+
   } else if (userID === undefined) {
     res.status(403).redirect("/login");
+
   } else if (!bcrypt.compareSync(req.body.password, users[userID].password)) {
     res.status(403).redirect("/login");
+
   } else {
     req.session.user_id = userID;
     res.redirect("/urls");
@@ -223,7 +225,7 @@ app.post("/login", (req, res) => {
 
 
 //This handles the logout request, it clears the cookie of the username and redirects back to the main page.
-app.post("/logout", (req, res) => {
+app.delete("/", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
@@ -231,10 +233,13 @@ app.post("/logout", (req, res) => {
 
 //This handles registration, it checks the supplied inputs and sends the appropriate response
 app.post("/register", (req, res) => {
+
   if (!req.body.email || !req.body.password) {
     res.status(400).send("Invalid entry.");
+
   } else if (getIDfromEmail(req.body.email, users)) {
     res.status(400).send("Email already in use.");
+
   } else {
     req.session.user_id = users.addUser(req.body);
     res.redirect("/urls");

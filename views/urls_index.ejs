@@ -31,17 +31,17 @@
       <tbody>
         <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
+            <td><a href="/u/<%= url %>" target="_blank"><%= url %></a></td>
             <td><%= urls[url].longURL %></td>
             <td><%= urls[url].uses %></td>
             <td><%= urls[url].date %></td>
             <td>
-              <form method="POST" action="/urls/<%= url %>">
+              <form method="GET" action="/urls/<%= url %>">
                 <button type="submit" class="btn btn-outline-primary">Edit</button>
               </form>
             </td>
             <td>
-              <form method="POST" action="/urls/<%= url %>/delete">
+              <form method="POST" action="/urls/<%= url %>/?_method=DELETE">
                 <button type="submit" class="btn btn-outline-danger">Delete</button>
               </form>
             </td>
@@ -49,6 +49,7 @@
         <% } %>
       </tbody>
     </table>
+    <div><h6>Click <a href="/urls/new">here</a> to make a new shortened URL!</h6></div>
     <% } %>
   </main>
   <!-- Bootstrap JS -->
