@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 
 //Incorporating HTML elements to stylize the page
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n"); 
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 
