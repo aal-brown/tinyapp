@@ -120,7 +120,8 @@ app.get("/urls/:shortURL", (req, res) => {
     let templateVars = {
       userID : users[userID],
       shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      uses: urlDatabase[req.params.shortURL].uses
     };
     res.render("urls_show", templateVars);
 
@@ -189,13 +190,17 @@ app.put("/urls/:shortURL", (req, res) => {
     res.status(403).send("Permission denied.");
 
   } else if (checkSafe(userID, req.params.shortURL, urlDatabase)) {
+    
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    urlDatabase[req.params.shortURL].date = getDate();
+    urlDatabase[req.params.shortURL].uses = 0;
+
     let templateVars = {
       userID : users[userID],
       shortURL: req.params.shortURL,
-      longURL: req.body.longURL
+      longURL: req.body.longURL,
+      uses: urlDatabase[req.params.shortURL].uses
     };
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    urlDatabase[req.params.shortURL].date = getDate();
     res.render("urls_show", templateVars);
 
   } else {
